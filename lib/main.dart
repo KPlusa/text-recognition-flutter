@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,9 +13,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'OCR Flutter App',
+      title: 'Text Recognition',
       theme: ThemeData(primarySwatch: Colors.red),
-      home: const MyHomePage(title: 'OCR Flutter App'),
+      home: const MyHomePage(title: 'Text Recognition'),
     );
   }
 }
@@ -26,19 +28,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -47,6 +36,31 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    File? _image;
+
+    // This is the image picker
+    final _picker = ImagePicker();
+    // Implementing the image picker
+    Future<void> _openImagePicker() async {
+      final XFile? pickedImage =
+          await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedImage != null) {
+        setState(() {
+          _image = File(pickedImage.path);
+        });
+      }
+    }
+
+    Future<void> _pickImageFromCamera() async {
+      final XFile? pickedImage =
+          await _picker.pickImage(source: ImageSource.camera);
+      if (pickedImage != null) {
+        setState(() {
+          _image = File(pickedImage.path);
+        });
+      }
+    }
+
     return Scaffold(
         appBar: AppBar(
           // Here we take the value from the MyHomePage object that was created by
@@ -60,9 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 ElevatedButton.icon(
-                  onPressed: () {
-                    print('pick image');
-                  },
+                  onPressed: _openImagePicker,
                   label: const Text('PICK IMAGE'),
                   icon: const Icon(Icons.image),
                   style: ElevatedButton.styleFrom(
@@ -78,9 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   width: 10, // <-- SEE HERE
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    print('button pressed!');
-                  },
+                  onPressed: _pickImageFromCamera,
                   icon: const Icon(Icons.photo_camera),
                   label: const Text('TAKE PHOTO'),
                   style: ElevatedButton.styleFrom(

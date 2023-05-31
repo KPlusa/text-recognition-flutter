@@ -28,39 +28,12 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  File? _image;
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    File? _image;
-
+    double screenWidth = MediaQuery.of(context).size.width;
+    //double screenHeight = MediaQuery.of(context).size.height;
     // This is the image picker
-    final _picker = ImagePicker();
-    // Implementing the image picker
-    Future<void> _openImagePicker() async {
-      final XFile? pickedImage =
-          await _picker.pickImage(source: ImageSource.gallery);
-      if (pickedImage != null) {
-        setState(() {
-          _image = File(pickedImage.path);
-        });
-      }
-    }
-
-    Future<void> _pickImageFromCamera() async {
-      final XFile? pickedImage =
-          await _picker.pickImage(source: ImageSource.camera);
-      if (pickedImage != null) {
-        setState(() {
-          _image = File(pickedImage.path);
-        });
-      }
-    }
-
     return Scaffold(
         appBar: AppBar(
           // Here we take the value from the MyHomePage object that was created by
@@ -71,10 +44,53 @@ class _MyHomePageState extends State<MyHomePage> {
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
+            children: [
+              if (_image == null)
+                Container(
+                  width: screenWidth * 0.9,
+                  height: screenWidth * 0.9,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.grey[300]!,
+                  ),
+                ),
+              if (_image != null)
+                Container(
+                  width: screenWidth * 0.9,
+                  height: screenWidth * 0.9,
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    image: DecorationImage(
+                      image: FileImage(_image!),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              if (_image != null)
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Container(
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: const Color.fromARGB(255, 255, 0, 0)),
+                      child: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _image = null;
+                          });
+                        },
+                        icon: const Icon(Icons.clear, color: Colors.white),
+                      )),
+                  const SizedBox(
+                    width: 10, // <-- SEE HERE
+                  ),
+                ]),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 ElevatedButton.icon(
-                  onPressed: _openImagePicker,
+                  onPressed: () {
+                    pickImage(ImageSource.gallery);
+                  },
                   label: const Text('PICK IMAGE'),
                   icon: const Icon(Icons.image),
                   style: ElevatedButton.styleFrom(
@@ -90,7 +106,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   width: 10, // <-- SEE HERE
                 ),
                 ElevatedButton.icon(
-                  onPressed: _pickImageFromCamera,
+                  onPressed: () {
+                    pickImage(ImageSource.camera);
+                  },
                   icon: const Icon(Icons.photo_camera),
                   label: const Text('TAKE PHOTO'),
                   style: ElevatedButton.styleFrom(
@@ -106,5 +124,14 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
         ));
+  }
+
+  void pickImage(ImageSource imageSource) async {
+    final pickedImage = await ImagePicker().pickImage(source: imageSource);
+    if (pickedImage != null) {
+      setState(() {
+        _image = File(pickedImage.path);
+      });
+    }
   }
 }

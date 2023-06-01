@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 
 void main() {
   runApp(const MyApp());
@@ -9,7 +10,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -29,15 +29,16 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   File? _image;
+  String scannedText = "";
+  bool _canProcess = true;
+  bool _isBusy = false;
+  final TextRecognizer _textRecognizer =
+      TextRecognizer(script: TextRecognitionScript.latin);
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    //double screenHeight = MediaQuery.of(context).size.height;
-    // This is the image picker
     return Scaffold(
         appBar: AppBar(
-          // Here we take the value from the MyHomePage object that was created by
-          // the App.build method, and use it to set our appbar title.
           title: Text(widget.title),
           centerTitle: true,
         ),
@@ -47,8 +48,8 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               if (_image == null)
                 Container(
-                  width: screenWidth * 0.9,
-                  height: screenWidth * 0.9,
+                  width: screenWidth * 0.8,
+                  height: screenWidth * 0.8,
                   margin: const EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
@@ -57,8 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               if (_image != null)
                 Container(
-                  width: screenWidth * 0.9,
-                  height: screenWidth * 0.9,
+                  width: screenWidth * 0.8,
+                  height: screenWidth * 0.8,
                   margin: const EdgeInsets.only(bottom: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
@@ -78,12 +79,28 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: () {
                           setState(() {
                             _image = null;
+                            scannedText = "";
                           });
                         },
                         icon: const Icon(Icons.clear, color: Colors.white),
                       )),
                   const SizedBox(
-                    width: 10, // <-- SEE HERE
+                    width: 10,
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      processImage(_image);
+                    },
+                    label: const Text('RECOGNIZE TEXT'),
+                    icon: const Icon(Icons.description),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 4, 103, 209),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.0)),
+                        minimumSize:
+                            Size(1, MediaQuery.of(context).size.height * 0.05),
+                        textStyle: const TextStyle(fontSize: 20) //////// HERE
+                        ),
                   ),
                 ]),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -120,7 +137,23 @@ class _MyHomePageState extends State<MyHomePage> {
                       textStyle: const TextStyle(fontSize: 20) //////// HERE
                       ),
                 ),
-              ])
+              ]),
+              if (scannedText != "")
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text('Recognized text:'),
+                  Container(
+                    width: screenWidth * 0.5,
+                    height: screenWidth * 0.5,
+                    margin: const EdgeInsets.only(bottom: 10, top: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.grey[300]!,
+                    ),
+                    child: Center(
+                      child: Text(scannedText),
+                    ),
+                  ),
+                ])
             ],
           ),
         ));
@@ -132,6 +165,26 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _image = File(pickedImage.path);
       });
+    }
+  }
+
+  Future<void> processImage(File? image) async {
+    if (!_canProcess) return;
+    if (_isBusy) return;
+    _isBusy = true;
+    setState(() {
+      scannedText = '';
+    });
+    final InputImage inputImage = InputImage.fromFilePath(image!.path);
+    final recognizedText = await _textRecognizer.processImage(inputImage);
+
+    scannedText = recognizedText.text;
+    // TODO: set _customPaint to draw boundingRect on top of image
+    print(scannedText);
+
+    _isBusy = false;
+    if (mounted) {
+      setState(() {});
     }
   }
 }

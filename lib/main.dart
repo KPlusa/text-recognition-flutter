@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
       title: 'Text Recognition',
       theme: ThemeData(primarySwatch: Colors.red),
       home: const MyHomePage(title: 'Text Recognition'),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -30,7 +31,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   File? _image;
   String scannedText = "";
-  bool _canProcess = true;
+  final bool _canProcess = true;
   bool _isBusy = false;
   final TextRecognizer _textRecognizer =
       TextRecognizer(script: TextRecognitionScript.latin);
@@ -55,8 +56,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     borderRadius: BorderRadius.circular(16),
                     color: Colors.grey[300]!,
                   ),
-                ),
-              if (_image != null)
+                )
+              else ...[
                 Container(
                   width: screenWidth * 0.8,
                   height: screenWidth * 0.8,
@@ -69,7 +70,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                 ),
-              if (_image != null)
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Container(
                       decoration: BoxDecoration(
@@ -99,10 +99,13 @@ class _MyHomePageState extends State<MyHomePage> {
                             borderRadius: BorderRadius.circular(16.0)),
                         minimumSize:
                             Size(1, MediaQuery.of(context).size.height * 0.05),
-                        textStyle: const TextStyle(fontSize: 20) //////// HERE
-                        ),
+                        textStyle: const TextStyle(fontSize: 20)),
                   ),
                 ]),
+                const SizedBox(
+                  height: 10,
+                ),
+              ],
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 ElevatedButton.icon(
                   onPressed: () {
@@ -116,11 +119,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           borderRadius: BorderRadius.circular(16.0)),
                       minimumSize:
                           Size(1, MediaQuery.of(context).size.height * 0.05),
-                      textStyle: const TextStyle(fontSize: 20) //////// HERE
-                      ),
+                      textStyle: const TextStyle(fontSize: 20)),
                 ),
                 const SizedBox(
-                  width: 10, // <-- SEE HERE
+                  width: 10,
                 ),
                 ElevatedButton.icon(
                   onPressed: () {
@@ -134,13 +136,11 @@ class _MyHomePageState extends State<MyHomePage> {
                           borderRadius: BorderRadius.circular(16.0)),
                       minimumSize:
                           Size(1, MediaQuery.of(context).size.height * 0.05),
-                      textStyle: const TextStyle(fontSize: 20) //////// HERE
-                      ),
+                      textStyle: const TextStyle(fontSize: 20)),
                 ),
               ]),
               if (scannedText != "")
                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text('Recognized text:'),
                   Container(
                     width: screenWidth * 0.5,
                     height: screenWidth * 0.5,
@@ -149,8 +149,27 @@ class _MyHomePageState extends State<MyHomePage> {
                       borderRadius: BorderRadius.circular(16),
                       color: Colors.grey[300]!,
                     ),
-                    child: Center(
-                      child: Text(scannedText),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: const Text(
+                              'Recognized text:',
+                              style: TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                          Center(
+                            child: SelectableText(
+                              scannedText,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ])
@@ -177,11 +196,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
     final InputImage inputImage = InputImage.fromFilePath(image!.path);
     final recognizedText = await _textRecognizer.processImage(inputImage);
-
     scannedText = recognizedText.text;
-    // TODO: set _customPaint to draw boundingRect on top of image
-    print(scannedText);
-
     _isBusy = false;
     if (mounted) {
       setState(() {});

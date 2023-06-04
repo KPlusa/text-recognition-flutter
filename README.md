@@ -1,6 +1,10 @@
-# ocr_app
+# Text recognition
 
-A new Flutter project.
+<img
+  src="/assets/images/text_recognition.png"
+  alt="Text Recognition"
+  title="Optional title"
+  style=" max-width: 200px">
 
 ## Getting Started
 

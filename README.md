@@ -3,8 +3,8 @@
 <img
   src="/assets/images/text_recognition.png"
   alt="Text Recognition"
-  title="Optional title"
-  style=" max-width: 200px">
+  height="100"
+  width="100">
 
 ## Getting Started
 

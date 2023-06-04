@@ -8,7 +8,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +22,9 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
   final String title;
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -31,154 +32,172 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   File? _image;
   String scannedText = "";
-  final bool _canProcess = true;
   bool _isBusy = false;
   final TextRecognizer _textRecognizer =
       TextRecognizer(script: TextRecognitionScript.latin);
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-          centerTitle: true,
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (_image == null)
-                Container(
-                  width: screenWidth * 0.8,
-                  height: screenWidth * 0.8,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.grey[300]!,
-                  ),
-                )
-              else ...[
-                Container(
-                  width: screenWidth * 0.8,
-                  height: screenWidth * 0.8,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    image: DecorationImage(
-                      image: FileImage(_image!),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: const Color.fromARGB(255, 255, 0, 0)),
-                      child: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _image = null;
-                            scannedText = "";
-                          });
-                        },
-                        icon: const Icon(Icons.clear, color: Colors.white),
-                      )),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      processImage(_image);
-                    },
-                    label: const Text('RECOGNIZE TEXT'),
-                    icon: const Icon(Icons.description),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 4, 103, 209),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16.0)),
-                        minimumSize:
-                            Size(1, MediaQuery.of(context).size.height * 0.05),
-                        textStyle: const TextStyle(fontSize: 20)),
-                  ),
-                ]),
-                const SizedBox(
-                  height: 10,
-                ),
-              ],
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    pickImage(ImageSource.gallery);
-                  },
-                  label: const Text('PICK IMAGE'),
-                  icon: const Icon(Icons.image),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 4, 103, 209),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16.0)),
-                      minimumSize:
-                          Size(1, MediaQuery.of(context).size.height * 0.05),
-                      textStyle: const TextStyle(fontSize: 20)),
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    pickImage(ImageSource.camera);
-                  },
-                  icon: const Icon(Icons.photo_camera),
-                  label: const Text('TAKE PHOTO'),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 4, 103, 209),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16.0)),
-                      minimumSize:
-                          Size(1, MediaQuery.of(context).size.height * 0.05),
-                      textStyle: const TextStyle(fontSize: 20)),
-                ),
-              ]),
-              if (scannedText != "")
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Container(
-                    width: screenWidth * 0.5,
-                    height: screenWidth * 0.5,
-                    margin: const EdgeInsets.only(bottom: 10, top: 10),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.grey[300]!,
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            child: const Text(
-                              'Recognized text:',
-                              style: TextStyle(
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
-                          Center(
-                            child: SelectableText(
-                              scannedText,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ])
+      appBar: AppBar(
+        title: Text(widget.title),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_image == null) ...[
+              _buildContainer(screenWidth),
+            ] else ...[
+              _buildContainer(screenWidth),
+              _buildImageButtonsRow(),
+              const SizedBox(height: 10),
             ],
-          ),
-        ));
+            _buildButtonsRow(),
+            if (scannedText.isNotEmpty) ...[
+              _buildScannedTextContainer(screenWidth),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
-  void pickImage(ImageSource imageSource) async {
+  Widget _buildContainer(double screenWidth) {
+    return Container(
+      width: screenWidth * 0.8,
+      height: screenWidth * 0.8,
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: _image == null ? Colors.grey[300] : null,
+        image: _image != null
+            ? DecorationImage(
+                image: FileImage(_image!),
+                fit: BoxFit.cover,
+              )
+            : null,
+      ),
+    );
+  }
+
+  Widget _buildImageButtonsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildIconButton(Icons.clear, Colors.white, _clearImage),
+        const SizedBox(width: 10),
+        _buildElevatedButton(
+          'RECOGNIZE TEXT',
+          Icons.description,
+          const Color.fromARGB(255, 4, 103, 209),
+          _image != null ? _processImage : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildButtonsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildElevatedButton(
+          'PICK IMAGE',
+          Icons.image,
+          const Color.fromARGB(255, 4, 103, 209),
+          () => pickImage(ImageSource.gallery),
+        ),
+        const SizedBox(width: 10),
+        _buildElevatedButton(
+          'TAKE PHOTO',
+          Icons.photo_camera,
+          const Color.fromARGB(255, 4, 103, 209),
+          () => pickImage(ImageSource.camera),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScannedTextContainer(double screenWidth) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: screenWidth * 0.5,
+          height: screenWidth * 0.5,
+          margin: const EdgeInsets.only(bottom: 10, top: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.grey[300]!,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  child: const Text(
+                    'Recognized text:',
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+                Center(
+                  child: SelectableText(
+                    scannedText,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIconButton(
+      IconData iconData, Color color, VoidCallback onPressed) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: const Color.fromARGB(255, 255, 0, 0),
+      ),
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(iconData, color: color),
+      ),
+    );
+  }
+
+  Widget _buildElevatedButton(
+    String label,
+    IconData iconData,
+    Color backgroundColor,
+    VoidCallback? onPressed,
+  ) {
+    return ElevatedButton.icon(
+      onPressed: onPressed != null ? () => onPressed() : null,
+      label: Text(label),
+      icon: Icon(iconData),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: backgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        minimumSize: Size(
+          1,
+          MediaQuery.of(context).size.height * 0.05,
+        ),
+        textStyle: const TextStyle(fontSize: 20),
+      ),
+    );
+  }
+
+  Future<void> pickImage(ImageSource imageSource) async {
     final pickedImage = await ImagePicker().pickImage(source: imageSource);
     if (pickedImage != null) {
       setState(() {
@@ -187,19 +206,27 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> processImage(File? image) async {
-    if (!_canProcess) return;
-    if (_isBusy) return;
-    _isBusy = true;
+  Future<void> _processImage() async {
+    if (_isBusy || _image == null) return;
+
     setState(() {
       scannedText = '';
+      _isBusy = true;
     });
-    final InputImage inputImage = InputImage.fromFilePath(image!.path);
+
+    final InputImage inputImage = InputImage.fromFilePath(_image!.path);
     final recognizedText = await _textRecognizer.processImage(inputImage);
-    scannedText = recognizedText.text;
-    _isBusy = false;
-    if (mounted) {
-      setState(() {});
-    }
+
+    setState(() {
+      scannedText = recognizedText.text;
+      _isBusy = false;
+    });
+  }
+
+  void _clearImage() {
+    setState(() {
+      _image = null;
+      scannedText = '';
+    });
   }
 }

@@ -1,10 +1,10 @@
-# Text recognition
-
 <img
-  src="/assets/images/text_recognition.png"
+  src="/assets/images/text_recognition_white.png"
   alt="Text Recognition"
   height="100"
   width="100">
+  
+# Text recognition
 
 ## Getting Started
 
